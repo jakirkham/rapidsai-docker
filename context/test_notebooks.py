@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import os.path
 import sys
 import timeit
 from typing import Iterable
@@ -31,18 +32,14 @@ ignored_notebooks = [
 
 def get_notebooks(directory: str) -> Iterable[str]:
     for root, dirs, files in os.walk(directory):
+        for match_ignored_subs in ignored_subdirectory_names:
+            if root.split(os.path.sep)[-1] == match_ignored_subs:
+                continue
+        files = set(files) - set(ignored_filenames)
         for file in files:
+            path = os.path.join(root.replace(directory, ''), file)
             if (
-                file.endswith(".ipynb")
-                and not (
-                    any(
-                        match_ignored_subs in root
-                        for match_ignored_subs in ignored_subdirectory_names
-                    )
-                )
-                and not (
-                    any(match_ignored_file in file for match_ignored_file in ignored_filenames)
-                )
+                path.endswith(".ipynb")
                 and "MNMG" not in file.upper()
                 and not any(file in ignored_notebook for ignored_notebook in ignored_notebooks)
             ):
